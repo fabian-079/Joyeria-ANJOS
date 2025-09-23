@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Agrega al final de resources/css/app.css */
+.custom-yellow {
+    @apply bg-[#FBBF24] text-gray-800 rounded-lg shadow-md p-6;
+}
