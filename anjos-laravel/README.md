@@ -1,0 +1,1 @@
+© 2025 ANJOS JOYERÍA Y ACCESORIOS - Todos los derechos reservados
