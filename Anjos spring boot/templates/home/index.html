@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anjos Joyería y Accesorios</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor-logo">
+            <a th:href="@{/}"><img th:src="@{/img/Logo.png}" alt="Logo Anjos" class="logo"/></a>
+        </div>
+        <div class="contenedor-derecha">
+            <div class="acciones-usuario">
+                <span sec:authorize="isAuthenticated()">
+                    <i class="fas fa-user"></i> <span sec:authentication="principal.username"></span> | 
+                    <a th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> Salir</a>
+                </span>
+                <span sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/login}"><i class="fas fa-user"></i> Ingresar</a> | 
+                    <a th:href="@{/register}"><i class="fas fa-user-plus"></i> Registrarse</a>
+                </span>
+            </div>
+            <div class="iconos">
+                <a th:href="@{/favoritos}"><i class="fas fa-heart"></i></a>
+                <a th:href="@{/buscar}"><i class="fas fa-search"></i></a>
+                <a th:href="@{/carrito}"><i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <button class="boton-menu">☰ Menú</button>
+
+    <aside class="menu-lateral" id="menuLateral">
+        <nav>
+            <ul>
+                <li><a th:href="@{/}"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a th:href="@{/catalogo}"><i class="fas fa-list"></i> Catálogo</a></li>
+                <li sec:authorize="isAuthenticated()">
+                    <a th:href="@{/dashboard/cliente}"><i class="fas fa-tachometer-alt"></i> Mi Dashboard</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <a th:href="@{/orders}"><i class="fas fa-shopping-bag"></i> Mis Órdenes</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <a th:href="@{/personalizacion}"><i class="fas fa-pencil-alt"></i> Personalización</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <a th:href="@{/reparaciones}"><i class="fas fa-tools"></i> Reparaciones</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <hr style="margin: 10px 0; border-color: #ddd;">
+                    <strong style="color: #007bff; padding: 10px;">Administración</strong>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/dashboard/admin}"><i class="fas fa-tachometer-alt"></i> Dashboard Admin</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/products}"><i class="fas fa-box"></i> Productos</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/users}"><i class="fas fa-users"></i> Usuarios</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/admin/roles}"><i class="fas fa-user-shield"></i> Roles</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/admin/reports}"><i class="fas fa-chart-bar"></i> Reportes</a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="contenido-principal">
+        <section class="hero">
+            <h1>Bienvenido a Anjos Joyería</h1>
+            <p>Encuentra las mejores joyas y accesorios</p>
+        </section>
+
+        <section class="productos-destacados">
+            <h2>Productos Destacados</h2>
+            <div class="grid-productos" th:if="${featuredProducts != null and !featuredProducts.isEmpty()}">
+                <div class="producto-card" th:each="product : ${featuredProducts}">
+                    <div style="width: 100%; height: 250px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                        <img th:src="${product.imageUrl ?: '/img/Logo.png'}" th:alt="${product.name ?: 'Producto'}" 
+                             style="max-width: 100%; max-height: 100%; object-fit: cover;"
+                             onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'">
+                    </div>
+                    <h3 th:text="${product.name ?: 'Producto sin nombre'}"></h3>
+                    <p class="precio" th:text="${'$' + #numbers.formatDecimal(product.price ?: 0, 0, 2)}"></p>
+                    <a th:href="@{/producto/{id}(id=${product.id})}" class="btn-ver">Ver Detalles</a>
+                </div>
+            </div>
+            <p th:if="${featuredProducts == null or featuredProducts.isEmpty()}">No hay productos destacados disponibles.</p>
+        </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        const botonMenu = document.querySelector('.boton-menu');
+        const menuLateral = document.getElementById('menuLateral');
+        const contenidoPrincipal = document.querySelector('.contenido-principal');
+
+        if (botonMenu && menuLateral) {
+            botonMenu.addEventListener('click', () => {
+                menuLateral.classList.toggle('activo');
+                botonMenu.classList.toggle('activo');
+                if (contenidoPrincipal) {
+                    contenidoPrincipal.classList.toggle('menu-activo');
+                }
+            });
+        }
+
+        // Asegurar que el botón siempre esté visible
+        if (botonMenu) {
+            botonMenu.style.display = 'block';
+            botonMenu.style.visibility = 'visible';
+            botonMenu.style.opacity = '1';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reparaciones - Anjos Joyería</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: menuButton}"></div>
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-tools"></i> Reparaciones</h1>
+            <div>
+                <button onclick="openModal('createModal')" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nueva Reparación
+                </button>
+                <a th:href="@{/dashboard/cliente}" sec:authorize="!hasRole('ADMIN')" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+                <a th:href="@{/dashboard/admin}" sec:authorize="hasRole('ADMIN')" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Número</th>
+                            <th>Cliente</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th>Técnico</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="repair : ${repairs}">
+                            <td th:text="${repair.id}"></td>
+                            <td><strong th:text="${repair.repairNumber ?: 'N/A'}"></strong></td>
+                            <td th:text="${repair.customerName ?: 'N/A'}"></td>
+                            <td th:text="${repair.description != null ? #strings.abbreviate(repair.description, 50) : 'N/A'}"></td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${repair.status != null and repair.status.name() == 'COMPLETED'} ? 'badge-success' : 
+                                                       (${repair.status != null and repair.status.name() == 'IN_PROGRESS'}) ? 'badge-warning' : 
+                                                       (${repair.status != null and repair.status.name() == 'CANCELLED'}) ? 'badge-danger' : 'badge-info'"
+                                      th:text="${repair.status != null ? repair.status : 'PENDIENTE'}"></span>
+                            </td>
+                            <td th:text="${repair.assignedTechnician?.name ?: 'Sin asignar'}"></td>
+                            <td th:text="${repair.createdAt != null ? #temporals.format(repair.createdAt, 'dd/MM/yyyy') : 'N/A'}"></td>
+                            <td>
+                                <button onclick="openViewModal([[${repair.id}]], '[[${repair.repairNumber}]]', '[[${repair.customerName}]]', '[[${#strings.replace(repair.description, "'", "\\'")}]]', '[[${repair.phone}]]', '[[${repair.status}]]', '[[${repair.assignedTechnician?.name ?: ''}]]', '[[${repair.estimatedCost ?: ''}]]', '[[${repair.technicianNotes ?: ''}]]', '[[${repair.notes ?: ''}]]')" 
+                                        class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Ver
+                                </button>
+                                <button onclick="openEditModal([[${repair.id}]], '[[${repair.repairNumber}]]', '[[${repair.customerName}]]', '[[${#strings.replace(repair.description, "'", "\\'")}]]', '[[${repair.phone}]]', '[[${repair.status}]]', '[[${repair.assignedTechnician?.id ?: ''}]]', '[[${repair.estimatedCost ?: ''}]]', '[[${repair.technicianNotes ?: ''}]]', '[[${repair.notes ?: ''}]]')" 
+                                        class="btn btn-sm btn-primary" sec:authorize="hasRole('ADMIN')">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
+                                <form th:action="@{/reparaciones/{id}/delete(id=${repair.id})}" method="post" style="display: inline;" sec:authorize="hasRole('ADMIN')">
+                                    <button type="submit" class="btn btn-sm btn-danger" 
+                                            onclick="return confirm('¿Estás seguro de eliminar esta reparación?')">
+                                        <i class="fas fa-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${repairs == null or repairs.isEmpty()}">
+                            <td colspan="8" class="empty-state">
+                                <i class="fas fa-tools"></i>
+                                <p>No hay reparaciones registradas</p>
+                                <button onclick="openModal('createModal')" class="btn btn-primary" style="margin-top: 10px;">
+                                    <i class="fas fa-plus"></i> Crear Primera Reparación
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Reparación -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-tools"></i> Nueva Reparación</h2>
+                <span class="close" onclick="closeModal('createModal')">&times;</span>
+            </div>
+            <form th:action="@{/reparaciones}" method="post">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="customerName">Nombre del Cliente *</label>
+                        <input type="text" id="customerName" name="customerName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Teléfono *</label>
+                        <input type="text" id="phone" name="phone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Descripción del Problema *</label>
+                        <textarea id="description" name="description" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="image">URL de Imagen (opcional)</label>
+                        <input type="text" id="image" name="image" class="form-control" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Reparación -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Editar Reparación</h2>
+                <span class="close" onclick="closeModal('editModal')">&times;</span>
+            </div>
+            <form id="editForm" th:action="@{/reparaciones/{id}(id=${repair.id})}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="editId" name="id">
+                    <div class="form-group">
+                        <label for="editCustomerName">Nombre del Cliente *</label>
+                        <input type="text" id="editCustomerName" name="customerName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">Teléfono *</label>
+                        <input type="text" id="editPhone" name="phone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDescription">Descripción del Problema *</label>
+                        <textarea id="editDescription" name="description" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">Estado</label>
+                        <select id="editStatus" name="status" class="form-control">
+                            <option value="PENDING">Pendiente</option>
+                            <option value="IN_PROGRESS">En Proceso</option>
+                            <option value="COMPLETED">Completada</option>
+                            <option value="CANCELLED">Cancelada</option>
+                        </select>
+                    </div>
+                    <div class="form-group" sec:authorize="hasRole('ADMIN')">
+                        <label for="editTechnicianId">Técnico Asignado</label>
+                        <select id="editTechnicianId" name="assignedTechnicianId" class="form-control">
+                            <option value="">Sin asignar</option>
+                            <option th:each="tech : ${technicians}" th:value="${tech.id}" th:text="${tech.name}"></option>
+                        </select>
+                        <small class="form-text text-muted">Solo visible para administradores</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEstimatedCost">Costo Estimado</label>
+                        <input type="number" id="editEstimatedCost" name="estimatedCost" step="0.01" min="0" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="editTechnicianNotes">Notas del Técnico</label>
+                        <textarea id="editTechnicianNotes" name="technicianNotes" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editNotes">Notas Generales</label>
+                        <textarea id="editNotes" name="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Actualizar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Reparación -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-eye"></i> Detalles de Reparación</h2>
+                <span class="close" onclick="closeModal('viewModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div><strong>Número:</strong> <span id="viewRepairNumber"></span></div>
+                    <div><strong>Cliente:</strong> <span id="viewCustomerName"></span></div>
+                    <div><strong>Teléfono:</strong> <span id="viewPhone"></span></div>
+                    <div><strong>Estado:</strong> <span id="viewStatus"></span></div>
+                    <div><strong>Técnico:</strong> <span id="viewTechnician"></span></div>
+                    <div><strong>Costo Estimado:</strong> <span id="viewEstimatedCost"></span></div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>Descripción:</strong>
+                    <p id="viewDescription"></p>
+                </div>
+                <div style="margin-top: 15px;" sec:authorize="hasRole('ADMIN')">
+                    <strong>Notas del Técnico:</strong>
+                    <p id="viewTechnicianNotes"></p>
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>Notas Generales:</strong>
+                    <p id="viewNotes"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('viewModal')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: menuScript}"></div>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function openEditModal(id, repairNumber, customerName, description, phone, status, technicianId, estimatedCost, technicianNotes, notes) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editCustomerName').value = customerName || '';
+            document.getElementById('editPhone').value = phone || '';
+            document.getElementById('editDescription').value = description || '';
+            document.getElementById('editStatus').value = status || 'PENDING';
+            if (technicianId) document.getElementById('editTechnicianId').value = technicianId;
+            document.getElementById('editEstimatedCost').value = estimatedCost || '';
+            document.getElementById('editTechnicianNotes').value = technicianNotes || '';
+            document.getElementById('editNotes').value = notes || '';
+            // Usar Thymeleaf para construir la URL correctamente
+            const form = document.getElementById('editForm');
+            if (form) {
+                form.action = '/reparaciones/' + id;
+            }
+            openModal('editModal');
+        }
+
+        function openViewModal(id, repairNumber, customerName, description, phone, status, technician, estimatedCost, technicianNotes, notes) {
+            document.getElementById('viewRepairNumber').textContent = repairNumber || 'N/A';
+            document.getElementById('viewCustomerName').textContent = customerName || 'N/A';
+            document.getElementById('viewPhone').textContent = phone || 'N/A';
+            document.getElementById('viewStatus').textContent = status || 'N/A';
+            document.getElementById('viewTechnician').textContent = technician || 'Sin asignar';
+            document.getElementById('viewEstimatedCost').textContent = estimatedCost ? '$' + parseFloat(estimatedCost).toLocaleString() : 'N/A';
+            document.getElementById('viewDescription').textContent = description || 'N/A';
+            document.getElementById('viewTechnicianNotes').textContent = technicianNotes || 'N/A';
+            document.getElementById('viewNotes').textContent = notes || 'N/A';
+            openModal('viewModal');
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalizaciones - Anjos Joyería</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: menuButton}"></div>
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-pencil-alt"></i> Personalizaciones</h1>
+            <div>
+                <button onclick="openModal('createModal')" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nueva Personalización
+                </button>
+                <a th:href="@{/dashboard/cliente}" sec:authorize="!hasRole('ADMIN')" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+                <a th:href="@{/dashboard/admin}" sec:authorize="hasRole('ADMIN')" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo de Joya</th>
+                            <th>Diseño</th>
+                            <th>Material</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="customization : ${customizations}">
+                            <td th:text="${customization.id}"></td>
+                            <td th:text="${customization.jewelryType ?: 'N/A'}"></td>
+                            <td th:text="${customization.design ?: 'N/A'}"></td>
+                            <td th:text="${customization.material ?: 'N/A'}"></td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${customization.status != null and customization.status == 'completed'} ? 'badge-success' : 
+                                                       (${customization.status != null and customization.status == 'in_progress'}) ? 'badge-warning' : 'badge-info'"
+                                      th:text="${customization.status ?: 'pending'}"></span>
+                            </td>
+                            <td th:text="${customization.createdAt != null ? #temporals.format(customization.createdAt, 'dd/MM/yyyy') : 'N/A'}"></td>
+                            <td>
+                                <button onclick="openViewModal([[${customization.id}]], '[[${customization.jewelryType}]]', '[[${customization.design}]]', '[[${customization.material}]]', '[[${customization.color}]]', '[[${customization.finish}]]', '[[${customization.stones}]]', '[[${customization.engraving ?: ''}]]', '[[${customization.specialInstructions ?: ''}]]', '[[${customization.status}]]', '[[${customization.estimatedPrice ?: ''}]]', '[[${customization.adminNotes ?: ''}]]')" 
+                                        class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Ver
+                                </button>
+                                <button onclick="openEditModal([[${customization.id}]], '[[${customization.jewelryType}]]', '[[${customization.design}]]', '[[${customization.material}]]', '[[${customization.color}]]', '[[${customization.finish}]]', '[[${customization.stones}]]', '[[${customization.engraving ?: ''}]]', '[[${customization.specialInstructions ?: ''}]]', '[[${customization.status}]]', '[[${customization.estimatedPrice ?: ''}]]', '[[${customization.adminNotes ?: ''}]]')" 
+                                        class="btn btn-sm btn-primary" sec:authorize="hasRole('ADMIN')">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
+                                <form th:action="@{/personalizacion/{id}/delete(id=${customization.id})}" method="post" style="display: inline;" sec:authorize="hasRole('ADMIN')">
+                                    <button type="submit" class="btn btn-sm btn-danger" 
+                                            onclick="return confirm('¿Estás seguro de eliminar esta personalización?')">
+                                        <i class="fas fa-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${customizations == null or customizations.isEmpty()}">
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-pencil-alt"></i>
+                                <p>No hay personalizaciones registradas</p>
+                                <button onclick="openModal('createModal')" class="btn btn-primary" style="margin-top: 10px;">
+                                    <i class="fas fa-plus"></i> Crear Primera Personalización
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Personalización -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-pencil-alt"></i> Nueva Personalización</h2>
+                <span class="close" onclick="closeModal('createModal')">&times;</span>
+            </div>
+            <form th:action="@{/personalizacion}" method="post">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="jewelryType">Tipo de Joya *</label>
+                        <select id="jewelryType" name="jewelryType" class="form-control" required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="Anillo">Anillo</option>
+                            <option value="Collar">Collar</option>
+                            <option value="Pulsera">Pulsera</option>
+                            <option value="Aretes">Aretes</option>
+                            <option value="Dije">Dije</option>
+                            <option value="Reloj">Reloj</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="design">Diseño *</label>
+                        <input type="text" id="design" name="design" class="form-control" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label for="material">Material *</label>
+                            <input type="text" id="material" name="material" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="color">Color *</label>
+                            <input type="text" id="color" name="color" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="finish">Acabado *</label>
+                            <input type="text" id="finish" name="finish" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="stones">Piedras *</label>
+                            <input type="text" id="stones" name="stones" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="engraving">Grabado</label>
+                        <input type="text" id="engraving" name="engraving" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="specialInstructions">Instrucciones Especiales</label>
+                        <textarea id="specialInstructions" name="specialInstructions" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Personalización -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Editar Personalización</h2>
+                <span class="close" onclick="closeModal('editModal')">&times;</span>
+            </div>
+            <form id="editForm" th:action="@{/personalizacion/{id}(id=${customization.id})}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="editId" name="id">
+                    <div class="form-group">
+                        <label for="editJewelryType">Tipo de Joya *</label>
+                        <select id="editJewelryType" name="jewelryType" class="form-control" required>
+                            <option value="Anillo">Anillo</option>
+                            <option value="Collar">Collar</option>
+                            <option value="Pulsera">Pulsera</option>
+                            <option value="Aretes">Aretes</option>
+                            <option value="Dije">Dije</option>
+                            <option value="Reloj">Reloj</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDesign">Diseño *</label>
+                        <input type="text" id="editDesign" name="design" class="form-control" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label for="editMaterial">Material *</label>
+                            <input type="text" id="editMaterial" name="material" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editColor">Color *</label>
+                            <input type="text" id="editColor" name="color" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editFinish">Acabado *</label>
+                            <input type="text" id="editFinish" name="finish" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editStones">Piedras *</label>
+                            <input type="text" id="editStones" name="stones" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEngraving">Grabado</label>
+                        <input type="text" id="editEngraving" name="engraving" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="editSpecialInstructions">Instrucciones Especiales</label>
+                        <textarea id="editSpecialInstructions" name="specialInstructions" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">Estado</label>
+                        <select id="editStatus" name="status" class="form-control">
+                            <option value="pending">Pendiente</option>
+                            <option value="in_progress">En Proceso</option>
+                            <option value="completed">Completada</option>
+                            <option value="cancelled">Cancelada</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEstimatedPrice">Precio Estimado</label>
+                        <input type="number" id="editEstimatedPrice" name="estimatedPrice" step="0.01" min="0" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="editAdminNotes">Notas del Administrador</label>
+                        <textarea id="editAdminNotes" name="adminNotes" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Actualizar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Personalización -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-eye"></i> Detalles de Personalización</h2>
+                <span class="close" onclick="closeModal('viewModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div><strong>Tipo de Joya:</strong> <span id="viewJewelryType"></span></div>
+                    <div><strong>Diseño:</strong> <span id="viewDesign"></span></div>
+                    <div><strong>Material:</strong> <span id="viewMaterial"></span></div>
+                    <div><strong>Color:</strong> <span id="viewColor"></span></div>
+                    <div><strong>Acabado:</strong> <span id="viewFinish"></span></div>
+                    <div><strong>Piedras:</strong> <span id="viewStones"></span></div>
+                    <div><strong>Grabado:</strong> <span id="viewEngraving"></span></div>
+                    <div><strong>Estado:</strong> <span id="viewStatus"></span></div>
+                    <div><strong>Precio Estimado:</strong> <span id="viewEstimatedPrice"></span></div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>Instrucciones Especiales:</strong>
+                    <p id="viewSpecialInstructions"></p>
+                </div>
+                <div style="margin-top: 15px;" sec:authorize="hasRole('ADMIN')">
+                    <strong>Notas del Administrador:</strong>
+                    <p id="viewAdminNotes"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('viewModal')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: menuScript}"></div>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function openEditModal(id, jewelryType, design, material, color, finish, stones, engraving, specialInstructions, status, estimatedPrice, adminNotes) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editJewelryType').value = jewelryType || '';
+            document.getElementById('editDesign').value = design || '';
+            document.getElementById('editMaterial').value = material || '';
+            document.getElementById('editColor').value = color || '';
+            document.getElementById('editFinish').value = finish || '';
+            document.getElementById('editStones').value = stones || '';
+            document.getElementById('editEngraving').value = engraving || '';
+            document.getElementById('editSpecialInstructions').value = specialInstructions || '';
+            document.getElementById('editStatus').value = status || 'pending';
+            document.getElementById('editEstimatedPrice').value = estimatedPrice || '';
+            document.getElementById('editAdminNotes').value = adminNotes || '';
+            // Usar Thymeleaf para construir la URL correctamente
+            const form = document.getElementById('editForm');
+            if (form) {
+                form.action = '/personalizacion/' + id;
+            }
+            openModal('editModal');
+        }
+
+        function openViewModal(id, jewelryType, design, material, color, finish, stones, engraving, specialInstructions, status, estimatedPrice, adminNotes) {
+            document.getElementById('viewJewelryType').textContent = jewelryType || 'N/A';
+            document.getElementById('viewDesign').textContent = design || 'N/A';
+            document.getElementById('viewMaterial').textContent = material || 'N/A';
+            document.getElementById('viewColor').textContent = color || 'N/A';
+            document.getElementById('viewFinish').textContent = finish || 'N/A';
+            document.getElementById('viewStones').textContent = stones || 'N/A';
+            document.getElementById('viewEngraving').textContent = engraving || 'N/A';
+            document.getElementById('viewStatus').textContent = status || 'N/A';
+            document.getElementById('viewEstimatedPrice').textContent = estimatedPrice ? '$' + parseFloat(estimatedPrice).toLocaleString() : 'N/A';
+            document.getElementById('viewSpecialInstructions').textContent = specialInstructions || 'N/A';
+            document.getElementById('viewAdminNotes').textContent = adminNotes || 'N/A';
+            openModal('viewModal');
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

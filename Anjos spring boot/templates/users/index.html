@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Administración</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: menuButton}"></div>
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+            <div>
+                <button onclick="openModal('createModal')" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Usuario
+                </button>
+                <a th:href="@{/dashboard/admin}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Roles</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="user : ${users}">
+                            <td th:text="${user.id}"></td>
+                            <td th:text="${user.name}"></td>
+                            <td th:text="${user.email}"></td>
+                            <td th:text="${user.phone ?: 'N/A'}"></td>
+                            <td>
+                                <span th:each="role : ${user.roles}" class="badge badge-primary" style="margin-right: 5px;">
+                                    <span th:text="${role.name}"></span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${user.isActive} ? 'badge-success' : 'badge-danger'"
+                                      th:text="${user.isActive ? 'Activo' : 'Inactivo'}"></span>
+                            </td>
+                            <td>
+                                <button onclick="openEditModal([[${user.id}]], '[[${user.name}]]', '[[${user.email}]]', '[[${user.phone ?: ''}]]', '[[${user.address ?: ''}]]', [[${user.isActive}]], [[${#lists.size(user.roles)}]])" 
+                                        class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
+                                <form th:action="@{/users/{id}/delete(id=${user.id})}" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" 
+                                            onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
+                                        <i class="fas fa-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${users == null or users.isEmpty()}">
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <p>No hay usuarios registrados</p>
+                                <button onclick="openModal('createModal')" class="btn btn-primary" style="margin-top: 10px;">
+                                    <i class="fas fa-plus"></i> Crear Primer Usuario
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Usuario -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Nuevo Usuario</h2>
+                <span class="close" onclick="closeModal('createModal')">&times;</span>
+            </div>
+            <form th:action="@{/users}" method="post" id="createForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="name">Nombre Completo *</label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña *</label>
+                        <input type="password" id="password" name="password" class="form-control" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Teléfono</label>
+                        <input type="text" id="phone" name="phone" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Dirección</label>
+                        <textarea id="address" name="address" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Roles *</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                            <div th:each="role : ${roles}">
+                                <label>
+                                    <input type="checkbox" name="roleIds" th:value="${role.id}">
+                                    <span th:text="${role.name}"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="isActive" checked> Usuario Activo
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Usuario -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Editar Usuario</h2>
+                <span class="close" onclick="closeModal('editModal')">&times;</span>
+            </div>
+            <form id="editForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="editId" name="id">
+                    <div class="form-group">
+                        <label for="editName">Nombre Completo *</label>
+                        <input type="text" id="editName" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">Email *</label>
+                        <input type="email" id="editEmail" name="email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Nueva Contraseña (dejar vacío para no cambiar)</label>
+                        <input type="password" id="newPassword" name="newPassword" class="form-control" minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">Teléfono</label>
+                        <input type="text" id="editPhone" name="phone" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="editAddress">Dirección</label>
+                        <textarea id="editAddress" name="address" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Roles *</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                            <div th:each="role : ${roles}">
+                                <label>
+                                    <input type="checkbox" name="roleIds" th:value="${role.id}" class="role-checkbox">
+                                    <span th:text="${role.name}"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="editIsActive" name="isActive"> Usuario Activo
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Actualizar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: menuScript}"></div>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function openEditModal(id, name, email, phone, address, isActive, roleCount) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('editPhone').value = phone || '';
+            document.getElementById('editAddress').value = address || '';
+            document.getElementById('editIsActive').checked = isActive;
+            document.getElementById('editForm').action = '/users/' + id;
+            
+            // Limpiar checkboxes de roles
+            document.querySelectorAll('.role-checkbox').forEach(cb => cb.checked = false);
+            
+            openModal('editModal');
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

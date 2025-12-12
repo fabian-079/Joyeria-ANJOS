@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - Mi Proyecto</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <h1>Mi Proyecto Spring Boot</h1>
+            <ul class="nav-menu">
+                <li><a th:href="@{/}">Inicio</a></li>
+                <li><a th:href="@{/usuarios}">Usuarios</a></li>
+                <li><a th:href="@{/productos}">Productos</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="content">
+            <h2>Productos</h2>
+            <a th:href="@{/productos/nuevo}" class="btn btn-primary">Nuevo Producto</a>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Precio</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="producto : ${productos}">
+                        <td th:text="${producto.id}"></td>
+                        <td th:text="${producto.nombre}"></td>
+                        <td th:text="${producto.descripcion}"></td>
+                        <td th:text="${'$' + producto.precio}"></td>
+                        <td>
+                            <a th:href="@{/productos/{id}(id=${producto.id})}" class="btn btn-sm btn-warning">Editar</a>
+                            <form th:action="@{/productos/{id}(id=${producto.id})}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro?')">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Mi Proyecto. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>

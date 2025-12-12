@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito - Anjos Joyería</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: menuButton}"></div>
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+
+    <main class="contenido-principal">
+        <h1>Carrito de Compras</h1>
+        
+        <div th:if="${cartItems != null and !cartItems.isEmpty()}">
+            <table class="tabla-carrito">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${cartItems}">
+                        <td th:text="${item.product?.name ?: 'Producto no disponible'}"></td>
+                        <td th:text="${'$' + #numbers.formatDecimal(item.product?.price ?: 0, 0, 2)}"></td>
+                        <td>
+                            <form th:action="@{/carrito/{id}/update(id=${item.id})}" method="post" style="display:inline;">
+                                <input type="number" name="quantity" th:value="${item.quantity ?: 1}" min="1" style="width:60px;">
+                                <button type="submit">Actualizar</button>
+                            </form>
+                        </td>
+                        <td th:text="${'$' + #numbers.formatDecimal(item.subtotal ?: 0, 0, 2)}"></td>
+                        <td>
+                            <form th:action="@{/carrito/{id}/remove(id=${item.id})}" method="post" style="display:inline;">
+                                <button type="submit" class="btn-danger">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3"><strong>Total</strong></td>
+                        <td th:text="${'$' + #numbers.formatDecimal(total ?: 0, 0, 2)}"></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <form th:action="@{/orders/checkout}" method="post" class="form-checkout">
+                <h2>Información de Envío</h2>
+                <div class="form-group">
+                    <label>Dirección de Envío</label>
+                    <input type="text" name="shippingAddress" required>
+                </div>
+                <div class="form-group">
+                    <label>Dirección de Facturación</label>
+                    <input type="text" name="billingAddress" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select name="paymentMethod" required>
+                        <option value="TARJETA">Tarjeta</option>
+                        <option value="PSE">PSE</option>
+                        <option value="EFECTIVO">Efectivo</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Realizar Pedido</button>
+            </form>
+        </div>
+        
+        <div th:if="${cartItems == null or cartItems.isEmpty()}">
+            <p>Tu carrito está vacío. <a th:href="@{/catalogo}">Ver catálogo</a></p>
+        </div>
+    </main>
+    
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: menuScript}"></div>
+</body>
+</html>

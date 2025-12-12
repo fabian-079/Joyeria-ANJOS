@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Personalización - Anjos Joyería</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .btn { padding: 10px 20px; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-pencil-alt"></i> Nueva Personalización</h1>
+
+        <form th:action="@{/personalizacion}" th:object="${customization}" method="post">
+            <div class="form-group">
+                <label for="jewelryType">Tipo de Joyería *</label>
+                <select id="jewelryType" th:field="*{jewelryType}" required>
+                    <option value="">Seleccionar</option>
+                    <option value="Anillo">Anillo</option>
+                    <option value="Collar">Collar</option>
+                    <option value="Pulsera">Pulsera</option>
+                    <option value="Aretes">Aretes</option>
+                    <option value="Reloj">Reloj</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="design">Diseño *</label>
+                <input type="text" id="design" th:field="*{design}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="material">Material *</label>
+                <input type="text" id="material" th:field="*{material}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="stones">Piedras *</label>
+                <input type="text" id="stones" th:field="*{stones}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="color">Color *</label>
+                <input type="text" id="color" th:field="*{color}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="finish">Acabado *</label>
+                <input type="text" id="finish" th:field="*{finish}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="engraving">Grabado</label>
+                <input type="text" id="engraving" th:field="*{engraving}">
+            </div>
+
+            <div class="form-group">
+                <label for="specialInstructions">Instrucciones Especiales</label>
+                <textarea id="specialInstructions" th:field="*{specialInstructions}" rows="4"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Crear Personalización</button>
+                <a th:href="@{/personalizacion}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
+

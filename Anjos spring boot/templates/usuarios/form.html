@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario Usuario - Mi Proyecto</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <h1>Mi Proyecto Spring Boot</h1>
+            <ul class="nav-menu">
+                <li><a th:href="@{/}">Inicio</a></li>
+                <li><a th:href="@{/usuarios}">Usuarios</a></li>
+                <li><a th:href="@{/productos}">Productos</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="content">
+            <h2 th:text="${usuario.id != null} ? 'Editar Usuario' : 'Nuevo Usuario'"></h2>
+            
+            <form th:action="${usuario.id != null} ? @{/usuarios/{id}(id=${usuario.id})} : @{/usuarios}" 
+                  th:object="${usuario}" method="post" class="form">
+                
+                <div class="form-group">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" th:field="*{nombre}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" th:field="*{email}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" th:field="*{password}" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a th:href="@{/usuarios}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Mi Proyecto. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>

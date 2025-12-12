@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrador - Anjos Joyería</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor-logo">
+            <a th:href="@{/}"><img th:src="@{/img/Logo.png}" alt="Logo Anjos" class="logo"/></a>
+        </div>
+        <div class="contenedor-derecha">
+            <div class="acciones-usuario">
+                <span sec:authorize="isAuthenticated()">
+                    <i class="fas fa-user-shield"></i> <span sec:authentication="principal.username"></span> | 
+                    <a th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> Salir</a>
+                </span>
+            </div>
+            <div class="iconos">
+                <a th:href="@{/favoritos}"><i class="fas fa-heart"></i></a>
+                <a th:href="@{/carrito}"><i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <button class="boton-menu">☰ Menú</button>
+
+    <aside class="menu-lateral" id="menuLateral">
+        <nav>
+            <ul>
+                <li><a th:href="@{/}"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a th:href="@{/catalogo}"><i class="fas fa-list"></i> Catálogo</a></li>
+                <li><a th:href="@{/dashboard/cliente}"><i class="fas fa-tachometer-alt"></i> Mi Dashboard</a></li>
+                <li><hr style="margin: 10px 0; border-color: #ddd;"></li>
+                <li><strong style="color: var(--color-dorado); padding: 10px;">Administración</strong></li>
+                <li><a th:href="@{/dashboard/admin}"><i class="fas fa-tachometer-alt"></i> Dashboard Admin</a></li>
+                <li><a th:href="@{/products}"><i class="fas fa-box"></i> Productos</a></li>
+                <li><a th:href="@{/categories}"><i class="fas fa-tags"></i> Categorías</a></li>
+                <li><a th:href="@{/users}"><i class="fas fa-users"></i> Usuarios</a></li>
+                <li><a th:href="@{/admin/roles}"><i class="fas fa-user-shield"></i> Roles</a></li>
+                <li><a th:href="@{/admin/reports}"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+                <li><a th:href="@{/reparaciones}"><i class="fas fa-tools"></i> Reparaciones</a></li>
+                <li><a th:href="@{/personalizacion}"><i class="fas fa-pencil-alt"></i> Personalizaciones</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-tachometer-alt"></i> Dashboard Administrador</h1>
+                <p>Panel de control y estadísticas del sistema - Bienvenido, <span sec:authentication="principal.name"></span></p>
+            </div>
+            <div>
+                <a th:href="@{/}" class="btn btn-secondary"><i class="fas fa-home"></i> Inicio</a>
+                <a th:href="@{/dashboard/cliente}" class="btn btn-info" sec:authorize="hasAnyRole('ADMIN', 'CLIENTE')" style="margin-left: 10px;">
+                    <i class="fas fa-user"></i> Vista Cliente
+                </a>
+            </div>
+        </div>
+
+        <!-- Estadísticas Principales -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <h3><i class="fas fa-shopping-bag"></i> Total Órdenes</h3>
+                <div class="stat-value" th:text="${salesSummary?.totalOrders ?: 0}">0</div>
+                <i class="fas fa-shopping-bag stat-icon"></i>
+            </div>
+            
+            <div class="stat-card success">
+                <h3><i class="fas fa-dollar-sign"></i> Ingresos Totales</h3>
+                <div class="stat-value" th:text="${'$' + (salesSummary?.totalRevenue ?: 0)}">$0</div>
+                <i class="fas fa-dollar-sign stat-icon"></i>
+            </div>
+            
+            <div class="stat-card info">
+                <h3><i class="fas fa-box"></i> Total Productos</h3>
+                <div class="stat-value" th:text="${productsSummary?.totalProducts ?: 0}">0</div>
+                <i class="fas fa-box stat-icon"></i>
+            </div>
+            
+            <div class="stat-card warning">
+                <h3><i class="fas fa-users"></i> Total Usuarios</h3>
+                <div class="stat-value" th:text="${usersSummary?.totalUsers ?: 0}">0</div>
+                <i class="fas fa-users stat-icon"></i>
+            </div>
+            
+            <div class="stat-card danger">
+                <h3><i class="fas fa-tools"></i> Reparaciones Pendientes</h3>
+                <div class="stat-value" th:text="${pendingRepairs ?: 0}">0</div>
+                <i class="fas fa-tools stat-icon"></i>
+            </div>
+            
+            <div class="stat-card warning">
+                <h3><i class="fas fa-pencil-alt"></i> Personalizaciones Pendientes</h3>
+                <div class="stat-value" th:text="${pendingCustomizations ?: 0}">0</div>
+                <i class="fas fa-pencil-alt stat-icon"></i>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="dashboard-section">
+            <h2><i class="fas fa-bolt"></i> Acciones Rápidas</h2>
+            <div class="quick-actions">
+                <a th:href="@{/products}" class="quick-action-card">
+                    <i class="fas fa-box"></i>
+                    <h3>Gestionar Productos</h3>
+                    <p>Administrar productos del catálogo</p>
+                </a>
+                <a th:href="@{/categories}" class="quick-action-card">
+                    <i class="fas fa-tags"></i>
+                    <h3>Gestionar Categorías</h3>
+                    <p>Administrar categorías de productos</p>
+                </a>
+                <a th:href="@{/users}" class="quick-action-card">
+                    <i class="fas fa-users"></i>
+                    <h3>Gestionar Usuarios</h3>
+                    <p>Administrar usuarios del sistema</p>
+                </a>
+                <a th:href="@{/admin/roles}" class="quick-action-card">
+                    <i class="fas fa-user-shield"></i>
+                    <h3>Gestionar Roles</h3>
+                    <p>Administrar roles y permisos</p>
+                </a>
+                <a th:href="@{/admin/reports}" class="quick-action-card">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Ver Reportes</h3>
+                    <p>Estadísticas y análisis</p>
+                </a>
+                <a th:href="@{/reparaciones}" class="quick-action-card">
+                    <i class="fas fa-tools"></i>
+                    <h3>Reparaciones</h3>
+                    <p>Gestionar solicitudes</p>
+                </a>
+                <a th:href="@{/personalizacion}" class="quick-action-card">
+                    <i class="fas fa-pencil-alt"></i>
+                    <h3>Personalizaciones</h3>
+                    <p>Gestionar solicitudes</p>
+                </a>
+                <a th:href="@{/orders}" class="quick-action-card">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>Órdenes</h3>
+                    <p>Ver todas las órdenes</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Órdenes Recientes -->
+        <div class="dashboard-section">
+            <h2><i class="fas fa-shopping-bag"></i> Órdenes Recientes</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${recentOrders}">
+                            <td th:text="${order.orderNumber}"></td>
+                            <td th:text="${order.user?.name}"></td>
+                            <td th:text="${'$' + #numbers.formatDecimal(order.total, 0, 2)}"></td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${order.status != null and order.status.toString() == 'DELIVERED'} ? 'badge-success' : 
+                                                      (${order.status != null and order.status.toString() == 'PENDING'} ? 'badge-warning' : 'badge-info')"
+                                      th:text="${order.status != null ? order.status : 'PENDIENTE'}"></span>
+                            </td>
+                            <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td>
+                                <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm btn-primary">Ver</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${recentOrders == null or recentOrders.isEmpty()}">
+                            <td colspan="6" class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No hay órdenes recientes</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Productos Más Vendidos -->
+        <div class="dashboard-section" th:if="${topProducts != null and !topProducts.isEmpty()}">
+            <h2><i class="fas fa-star"></i> Productos Más Vendidos</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad Vendida</th>
+                            <th>Ingresos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${topProducts}">
+                            <td th:text="${item.product?.name}"></td>
+                            <td th:text="${item.quantitySold ?: 0}"></td>
+                            <td th:text="${'$' + #numbers.formatDecimal(item.totalRevenue ?: 0, 0, 2)}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Clientes Más Activos -->
+        <div class="dashboard-section" th:if="${topUsers != null and !topUsers.isEmpty()}">
+            <h2><i class="fas fa-trophy"></i> Clientes Más Activos</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Órdenes</th>
+                            <th>Total Gastado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${topUsers}">
+                            <td th:text="${item.user?.name}"></td>
+                            <td th:text="${item.orderCount ?: 0}"></td>
+                            <td th:text="${'$' + #numbers.formatDecimal(item.totalSpent ?: 0, 0, 2)}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        const botonMenu = document.querySelector('.boton-menu');
+        const menuLateral = document.getElementById('menuLateral');
+        const contenidoPrincipal = document.querySelector('.dashboard-container');
+
+        if (botonMenu && menuLateral) {
+            botonMenu.addEventListener('click', () => {
+                menuLateral.classList.toggle('activo');
+                botonMenu.classList.toggle('activo');
+                if (contenidoPrincipal) {
+                    contenidoPrincipal.classList.toggle('menu-activo');
+                }
+            });
+        }
+
+        // Asegurar que el botón siempre esté visible
+        if (botonMenu) {
+            botonMenu.style.display = 'block';
+            botonMenu.style.visibility = 'visible';
+            botonMenu.style.opacity = '1';
+        }
+    </script>
+</body>
+</html>
+

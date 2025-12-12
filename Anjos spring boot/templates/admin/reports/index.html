@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Administración</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: menuButton}"></div>
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-chart-bar"></i> Panel de Reportes</h1>
+            <div>
+                <a th:href="@{/dashboard/admin}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <h3><i class="fas fa-shopping-cart"></i> Ventas</h3>
+                <div class="stat-value" th:text="${salesSummary?.totalOrders ?: 0}">0</div>
+                <p>Total de Órdenes</p>
+                <i class="fas fa-shopping-cart stat-icon"></i>
+            </div>
+            <div class="stat-card success">
+                <h3><i class="fas fa-dollar-sign"></i> Ingresos</h3>
+                <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(salesSummary?.totalRevenue ?: 0, 0, 2)}">$0</div>
+                <p>Ingresos Totales</p>
+                <i class="fas fa-dollar-sign stat-icon"></i>
+            </div>
+            <div class="stat-card info">
+                <h3><i class="fas fa-box"></i> Productos</h3>
+                <div class="stat-value" th:text="${productsSummary?.totalProducts ?: 0}">0</div>
+                <p>Total de Productos</p>
+                <i class="fas fa-box stat-icon"></i>
+            </div>
+            <div class="stat-card warning">
+                <h3><i class="fas fa-users"></i> Usuarios</h3>
+                <div class="stat-value" th:text="${usersSummary?.totalUsers ?: 0}">0</div>
+                <p>Total de Usuarios</p>
+                <i class="fas fa-users stat-icon"></i>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <h2><i class="fas fa-chart-line"></i> Reportes Disponibles</h2>
+            <div class="quick-actions">
+                <a th:href="@{/admin/reports/sales}" class="quick-action-card">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <h3>Reporte de Ventas</h3>
+                    <p>Consulta de órdenes con filtros avanzados</p>
+                </a>
+                <a th:href="@{/admin/reports/products}" class="quick-action-card">
+                    <i class="fas fa-boxes"></i>
+                    <h3>Reporte de Productos</h3>
+                    <p>Análisis de inventario y productos</p>
+                </a>
+                <a th:href="@{/admin/reports/users}" class="quick-action-card">
+                    <i class="fas fa-user-friends"></i>
+                    <h3>Reporte de Usuarios</h3>
+                    <p>Información de usuarios y roles</p>
+                </a>
+                <a th:href="@{/admin/reports/top-selling}" class="quick-action-card">
+                    <i class="fas fa-trophy"></i>
+                    <h3>Productos Más Vendidos</h3>
+                    <p>Top productos por ventas</p>
+                </a>
+                <a th:href="@{/admin/reports/top-users}" class="quick-action-card">
+                    <i class="fas fa-star"></i>
+                    <h3>Clientes Más Activos</h3>
+                    <p>Top usuarios por actividad</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: menuScript}"></div>
+</body>
+</html>
+

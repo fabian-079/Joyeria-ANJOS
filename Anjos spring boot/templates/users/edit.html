@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario - Administración</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor-logo">
+            <a th:href="@{/}"><img th:src="@{/img/Logo.png}" alt="Logo Anjos" class="logo"/></a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-user-edit"></i> Editar Usuario</h1>
+            <a th:href="@{/users}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <div class="card">
+            <form th:action="@{/users/{id}(id=${user.id})}" th:object="${user}" method="post">
+                <div class="form-group">
+                    <label for="name">Nombre Completo *</label>
+                    <input type="text" id="name" th:field="*{name}" class="form-control" required>
+                    <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" th:field="*{email}" class="form-control" required>
+                    <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="newPassword">Nueva Contraseña (dejar vacío para mantener la actual)</label>
+                    <input type="password" id="newPassword" name="newPassword" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Teléfono</label>
+                    <input type="text" id="phone" th:field="*{phone}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Dirección</label>
+                    <textarea id="address" th:field="*{address}" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" th:field="*{isActive}"> Usuario Activo
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Roles *</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                        <div th:each="role : ${roles}">
+                            <label>
+                                <input type="checkbox" name="roleIds" th:value="${role.id}"
+                                       th:checked="${userRoles != null and userRoles.contains(role)}">
+                                <span th:text="${role.name}"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                    <a th:href="@{/users}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Ventas</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: menuButton}"></div>
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-file-invoice-dollar"></i> Reporte de Ventas</h1>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a th:href="@{/admin/reports/export/sales/pdf(startDate=${startDate}, endDate=${endDate}, status=${status})}" 
+                   class="btn btn-primary" style="white-space: nowrap;">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </a>
+                <a th:href="@{/admin/reports}" class="btn btn-secondary" style="white-space: nowrap;">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${error}" class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-filter"></i> Filtros</h2>
+            </div>
+            <form method="get" action="/admin/reports/sales" class="filtros">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label>Fecha Inicio</label>
+                        <input type="datetime-local" name="startDate" class="form-control" th:value="${startDate}">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Fin</label>
+                        <input type="datetime-local" name="endDate" class="form-control" th:value="${endDate}">
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select name="status" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="PENDING" th:selected="${status == 'PENDING'}">Pendiente</option>
+                            <option value="PROCESSING" th:selected="${status == 'PROCESSING'}">Procesando</option>
+                            <option value="SHIPPED" th:selected="${status == 'SHIPPED'}">Enviado</option>
+                            <option value="DELIVERED" th:selected="${status == 'DELIVERED'}">Entregado</option>
+                            <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a th:href="@{/admin/reports/sales}" class="btn btn-secondary" style="white-space: nowrap;">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="stats-grid" th:if="${summary}">
+            <div class="stat-card primary">
+                <h3>Total Órdenes</h3>
+                <div class="stat-value" th:text="${summary?.totalOrders ?: 0}">0</div>
+                <i class="fas fa-shopping-cart stat-icon"></i>
+            </div>
+            <div class="stat-card success">
+                <h3>Ingresos Totales</h3>
+                <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(summary?.totalRevenue ?: 0, 0, 2)}">$0</div>
+                <i class="fas fa-dollar-sign stat-icon"></i>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Número de Orden</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${orders}">
+                            <td th:text="${order.id}"></td>
+                            <td><strong th:text="${order.orderNumber ?: 'N/A'}"></strong></td>
+                            <td th:text="${order.user?.name ?: 'N/A'}"></td>
+                            <td><strong th:text="${'$' + #numbers.formatDecimal(order.total ?: 0, 0, 2)}"></strong></td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${order.status == 'DELIVERED'} ? 'badge-success' : 
+                                                       (${order.status == 'PROCESSING' or order.status == 'SHIPPED'}) ? 'badge-warning' : 
+                                                       (${order.status == 'CANCELLED'}) ? 'badge-danger' : 'badge-info'"
+                                      th:text="${order.status ?: 'PENDIENTE'}"></span>
+                            </td>
+                            <td th:text="${order.createdAt != null ? #temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
+                        </tr>
+                        <tr th:if="${orders == null or orders.isEmpty()}">
+                            <td colspan="6" class="empty-state">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <p>No hay órdenes que coincidan con los filtros</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: menuScript}"></div>
+</body>
+</html>
+

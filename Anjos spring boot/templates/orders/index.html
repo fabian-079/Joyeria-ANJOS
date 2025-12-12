@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Órdenes - Anjos Joyería</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .table th { background-color: #f8f9fa; font-weight: bold; }
+        .btn { padding: 8px 15px; text-decoration: none; border-radius: 5px; display: inline-block; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .alert { padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .alert-success { background-color: #d4edda; color: #155724; }
+        .alert-error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: menuButton}"></div>
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    
+    <div class="container">
+        <h1><i class="fas fa-shopping-bag"></i> Mis Órdenes</h1>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Número de Orden</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="order : ${orders}">
+                    <td th:text="${order.orderNumber ?: 'N/A'}"></td>
+                    <td th:text="${'$' + #numbers.formatDecimal(order.total ?: 0, 0, 2)}"></td>
+                    <td th:text="${order.status ?: 'PENDIENTE'}"></td>
+                    <td th:text="${order.createdAt != null ? #temporals.format(order.createdAt, 'dd/MM/yyyy') : 'N/A'}"></td>
+                    <td>
+                        <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-primary">Ver Detalles</a>
+                    </td>
+                </tr>
+                <tr th:if="${orders == null or orders.isEmpty()}">
+                    <td colspan="5" style="text-align: center;">No hay órdenes registradas</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 20px;">
+            <a th:href="@{/}" class="btn">Volver al Inicio</a>
+        </div>
+    </div>
+    
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: menuScript}"></div>
+</body>
+</html>
+

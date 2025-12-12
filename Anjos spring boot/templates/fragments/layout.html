@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+    <!-- Header Fragment -->
+    <header class="encabezado" th:fragment="header">
+        <div class="contenedor-logo">
+            <a th:href="@{/}"><img th:src="@{/img/Logo.png}" alt="Logo Anjos" class="logo"/></a>
+        </div>
+        <div class="contenedor-derecha">
+            <div class="acciones-usuario">
+                <span sec:authorize="isAuthenticated()">
+                    <i class="fas fa-user-shield" sec:authorize="hasRole('ADMIN')"></i>
+                    <i class="fas fa-user" sec:authorize="!hasRole('ADMIN')"></i>
+                    <span sec:authentication="principal.username"></span> | 
+                    <a th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> Salir</a>
+                </span>
+                <span sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/login}"><i class="fas fa-user"></i> Ingresar</a> | 
+                    <a th:href="@{/register}"><i class="fas fa-user-plus"></i> Registrarse</a>
+                </span>
+            </div>
+            <div class="iconos">
+                <a th:href="@{/favoritos}" sec:authorize="isAuthenticated()"><i class="fas fa-heart"></i></a>
+                <a th:href="@{/buscar}"><i class="fas fa-search"></i></a>
+                <a th:href="@{/carrito}" sec:authorize="isAuthenticated()"><i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu Button Fragment -->
+    <button class="boton-menu" th:fragment="menuButton">☰ Menú</button>
+
+    <!-- Sidebar Menu Fragment -->
+    <aside class="menu-lateral" id="menuLateral" th:fragment="sidebar">
+        <nav>
+            <ul>
+                <li><a th:href="@{/}"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a th:href="@{/catalogo}"><i class="fas fa-list"></i> Catálogo</a></li>
+                <li sec:authorize="isAuthenticated()">
+                    <a th:href="@{/dashboard/cliente}"><i class="fas fa-tachometer-alt"></i> Mi Dashboard</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <a th:href="@{/orders}"><i class="fas fa-shopping-bag"></i> Mis Órdenes</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <a th:href="@{/personalizacion}"><i class="fas fa-pencil-alt"></i> Personalización</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <a th:href="@{/reparaciones}"><i class="fas fa-tools"></i> Reparaciones</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <hr style="margin: 10px 0; border-color: var(--color-dorado);">
+                    <strong style="color: var(--color-dorado); padding: 10px; display: block;">Administración</strong>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/dashboard/admin}"><i class="fas fa-tachometer-alt"></i> Dashboard Admin</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/products}"><i class="fas fa-box"></i> Productos</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/categories}"><i class="fas fa-tags"></i> Categorías</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/users}"><i class="fas fa-users"></i> Usuarios</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/admin/roles}"><i class="fas fa-user-shield"></i> Roles</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/admin/reports}"><i class="fas fa-chart-bar"></i> Reportes</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/reparaciones}"><i class="fas fa-tools"></i> Reparaciones</a>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/personalizacion}"><i class="fas fa-pencil-alt"></i> Personalizaciones</a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Footer Fragment -->
+    <footer class="pie-pagina" th:fragment="footer">
+        <div class="contenido-pie">
+            <div class="informacion">
+                <h4>CONTACTO</h4>
+                <p><i class="fas fa-map-marker-alt"></i> CALLE 38C SUR #87D - 09 / BOGOTÁ, COLOMBIA</p>
+                <p><i class="fas fa-phone"></i> 3132090475 - 3013774549</p>
+                <p><i class="fas fa-envelope"></i> ANJOS@GMAIL.COM</p>
+            </div>
+            <div class="redes-sociales">
+                <h4>SÍGUENOS</h4>
+                <div class="iconos-sociales">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+        </div>
+        <p class="derechos">© 2025 ANJOS JOYERÍA Y ACCESORIOS - Todos los derechos reservados</p>
+    </footer>
+
+    <!-- Menu Script Fragment -->
+    <script th:fragment="menuScript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const botonMenu = document.querySelector('.boton-menu');
+            const menuLateral = document.getElementById('menuLateral');
+            const contenidoPrincipal = document.querySelector('.container, .dashboard-container, .contenido-principal');
+
+            if (botonMenu && menuLateral) {
+                botonMenu.addEventListener('click', () => {
+                    menuLateral.classList.toggle('activo');
+                    botonMenu.classList.toggle('activo');
+                    if (contenidoPrincipal) {
+                        contenidoPrincipal.classList.toggle('menu-activo');
+                    }
+                });
+            }
+
+            // Asegurar que el botón siempre esté visible
+            if (botonMenu) {
+                botonMenu.style.display = 'block';
+                botonMenu.style.visibility = 'visible';
+                botonMenu.style.opacity = '1';
+            }
+        });
+    </script>
+</body>
+</html>
+

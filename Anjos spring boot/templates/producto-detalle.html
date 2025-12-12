@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product?.name ?: 'Detalle de Producto'}">Detalle de Producto - Anjos Joyería</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .product-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+        .product-image { width: 100%; border-radius: 8px; }
+        .product-info h1 { margin-top: 0; }
+        .price { font-size: 2em; color: #007bff; font-weight: bold; }
+        .btn { padding: 10px 20px; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; display: inline-block; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .related-products { margin-top: 40px; }
+        .grid-productos { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .producto-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: menuButton}"></div>
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    
+    <div class="container">
+        <div th:if="${product}">
+            <div class="product-detail">
+                <div>
+                    <div style="width: 100%; height: 500px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <img th:src="${product.imageUrl ?: '/img/Logo.png'}" th:alt="${product.name ?: 'Producto'}" class="product-image"
+                             style="max-width: 100%; max-height: 100%; object-fit: cover;"
+                             onerror="this.src='https://via.placeholder.com/500x500?text=Sin+Imagen'">
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h1 th:text="${product.name ?: 'Producto sin nombre'}"></h1>
+                    <p class="price" th:text="${'$' + #numbers.formatDecimal(product.price ?: 0, 0, 2)}"></p>
+                    <p th:text="${product.description ?: 'Sin descripción'}"></p>
+                    <p><strong>Stock disponible:</strong> <span th:text="${product.stock ?: 0}"></span></p>
+                    
+                    <div sec:authorize="isAuthenticated()" style="margin-top: 20px;">
+                        <form th:action="@{/products/{id}/carrito(id=${product.id})}" method="post" style="display: inline-block;">
+                            <input type="number" name="quantity" value="1" min="1" th:max="${product.stock ?: 1}" style="width: 60px; padding: 5px; margin-right: 10px;">
+                            <button type="submit" class="btn btn-primary">Agregar al Carrito</button>
+                        </form>
+                        <form th:action="@{/products/{id}/favoritos(id=${product.id})}" method="post" style="display: inline-block; margin-left: 10px;">
+                            <button type="submit" class="btn">❤️ Favorito</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="related-products" th:if="${relatedProducts != null and !relatedProducts.isEmpty()}">
+                <h2>Productos Relacionados</h2>
+                <div class="grid-productos">
+                    <div class="producto-card" th:each="related : ${relatedProducts}">
+                        <div style="width: 100%; height: 200px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                            <img th:src="${related.imageUrl ?: '/img/Logo.png'}" th:alt="${related.name ?: 'Producto'}" 
+                                 style="max-width: 100%; max-height: 100%; object-fit: cover;"
+                                 onerror="this.src='https://via.placeholder.com/200x200?text=Sin+Imagen'">
+                        </div>
+                        <h3 th:text="${related.name ?: 'Producto sin nombre'}"></h3>
+                        <p th:text="${'$' + #numbers.formatDecimal(related.price ?: 0, 0, 2)}"></p>
+                        <a th:href="@{/producto/{id}(id=${related.id})}" class="btn btn-primary">Ver</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${error}">
+            <h2>Error</h2>
+            <p th:text="${error}"></p>
+            <a th:href="@{/}" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a th:href="@{/catalogo}" class="btn">Volver al Catálogo</a>
+        </div>
+    </div>
+    
+    <div th:replace="~{fragments/layout :: footer}"></div>
+    <div th:replace="~{fragments/layout :: menuScript}"></div>
+</body>
+</html>
+

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Dashboard - Anjos Joyería</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor-logo">
+            <a th:href="@{/}"><img th:src="@{/img/Logo.png}" alt="Logo Anjos" class="logo"/></a>
+        </div>
+        <div class="contenedor-derecha">
+            <div class="acciones-usuario">
+                <span sec:authorize="isAuthenticated()">
+                    <i class="fas fa-user"></i> <span sec:authentication="principal.username"></span> | 
+                    <a th:href="@{/logout}"><i class="fas fa-sign-out-alt"></i> Salir</a>
+                </span>
+            </div>
+            <div class="iconos">
+                <a th:href="@{/favoritos}"><i class="fas fa-heart"></i></a>
+                <a th:href="@{/carrito}"><i class="fas fa-shopping-cart"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <button class="boton-menu">☰ Menú</button>
+
+    <aside class="menu-lateral" id="menuLateral">
+        <nav>
+            <ul>
+                <li><a th:href="@{/}"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a th:href="@{/catalogo}"><i class="fas fa-list"></i> Catálogo</a></li>
+                <li><a th:href="@{/dashboard/cliente}"><i class="fas fa-tachometer-alt"></i> Mi Dashboard</a></li>
+                <li><a th:href="@{/orders}"><i class="fas fa-shopping-bag"></i> Mis Órdenes</a></li>
+                <li><a th:href="@{/personalizacion}"><i class="fas fa-pencil-alt"></i> Personalización</a></li>
+                <li><a th:href="@{/reparaciones}"><i class="fas fa-tools"></i> Reparaciones</a></li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <hr style="margin: 10px 0; border-color: #ddd;">
+                    <strong style="color: var(--color-dorado); padding: 10px;">Administración</strong>
+                </li>
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/dashboard/admin}"><i class="fas fa-tachometer-alt"></i> Dashboard Admin</a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-user-circle"></i> Mi Dashboard</h1>
+                <p>Bienvenido, <span sec:authentication="principal.name"></span>. Aquí puedes ver todas tus solicitudes y pedidos</p>
+            </div>
+            <div>
+                <a th:href="@{/}" class="btn btn-secondary"><i class="fas fa-home"></i> Inicio</a>
+                <a th:href="@{/dashboard/admin}" class="btn btn-info" sec:authorize="hasRole('ADMIN')" style="margin-left: 10px;">
+                    <i class="fas fa-user-shield"></i> Vista Admin
+                </a>
+            </div>
+        </div>
+
+        <!-- Estadísticas del Cliente -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <h3><i class="fas fa-shopping-bag"></i> Mis Órdenes</h3>
+                <div class="stat-value" th:text="${totalOrders ?: 0}">0</div>
+                <div style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                    <span th:text="${pendingOrders ?: 0}"></span> pendientes
+                </div>
+                <i class="fas fa-shopping-bag stat-icon"></i>
+            </div>
+            
+            <div class="stat-card success">
+                <h3><i class="fas fa-dollar-sign"></i> Total Gastado</h3>
+                <div class="stat-value" th:text="${'$' + #numbers.formatDecimal(totalSpent ?: 0, 0, 2)}">$0</div>
+                <i class="fas fa-dollar-sign stat-icon"></i>
+            </div>
+            
+            <div class="stat-card info">
+                <h3><i class="fas fa-shopping-cart"></i> Carrito</h3>
+                <div class="stat-value" th:text="${cartItemsCount ?: 0}">0</div>
+                <div style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                    Total: <span th:text="${'$' + #numbers.formatDecimal(cartTotal ?: 0, 0, 2)}"></span>
+                </div>
+                <i class="fas fa-shopping-cart stat-icon"></i>
+            </div>
+            
+            <div class="stat-card warning">
+                <h3><i class="fas fa-heart"></i> Favoritos</h3>
+                <div class="stat-value" th:text="${favoritesCount ?: 0}">0</div>
+                <i class="fas fa-heart stat-icon"></i>
+            </div>
+            
+            <div class="stat-card danger">
+                <h3><i class="fas fa-tools"></i> Reparaciones</h3>
+                <div class="stat-value" th:text="${totalRepairs ?: 0}">0</div>
+                <div style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                    <span th:text="${pendingRepairs ?: 0}"></span> pendientes
+                </div>
+                <i class="fas fa-tools stat-icon"></i>
+            </div>
+            
+            <div class="stat-card warning">
+                <h3><i class="fas fa-pencil-alt"></i> Personalizaciones</h3>
+                <div class="stat-value" th:text="${totalCustomizations ?: 0}">0</div>
+                <div style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                    <span th:text="${pendingCustomizations ?: 0}"></span> pendientes
+                </div>
+                <i class="fas fa-pencil-alt stat-icon"></i>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="dashboard-section">
+            <h2><i class="fas fa-bolt"></i> Acciones Rápidas</h2>
+            <div class="quick-actions">
+                <a th:href="@{/catalogo}" class="quick-action-card">
+                    <i class="fas fa-list"></i>
+                    <h3>Ver Catálogo</h3>
+                    <p>Explorar productos</p>
+                </a>
+                <a th:href="@{/carrito}" class="quick-action-card">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>Mi Carrito</h3>
+                    <p th:text="${cartItemsCount ?: 0} + ' items'">0 items</p>
+                </a>
+                <a th:href="@{/orders}" class="quick-action-card">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>Mis Órdenes</h3>
+                    <p th:text="${totalOrders ?: 0} + ' órdenes'">0 órdenes</p>
+                </a>
+                <a th:href="@{/favoritos}" class="quick-action-card">
+                    <i class="fas fa-heart"></i>
+                    <h3>Mis Favoritos</h3>
+                    <p th:text="${favoritesCount ?: 0} + ' favoritos'">0 favoritos</p>
+                </a>
+                <a th:href="@{/reparaciones/create}" class="quick-action-card">
+                    <i class="fas fa-tools"></i>
+                    <h3>Solicitar Reparación</h3>
+                    <p>Nueva solicitud</p>
+                </a>
+                <a th:href="@{/personalizacion/create}" class="quick-action-card">
+                    <i class="fas fa-pencil-alt"></i>
+                    <h3>Solicitar Personalización</h3>
+                    <p>Nueva solicitud</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Órdenes Recientes -->
+        <div class="dashboard-section">
+            <h2><i class="fas fa-shopping-bag"></i> Mis Órdenes Recientes</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Número de Orden</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${recentOrders}">
+                            <td th:text="${order.orderNumber}"></td>
+                            <td th:text="${'$' + #numbers.formatDecimal(order.total, 0, 2)}"></td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${order.status != null and order.status.toString() == 'DELIVERED'} ? 'badge-success' : 
+                                                      (${order.status != null and order.status.toString() == 'PENDING'} ? 'badge-warning' : 'badge-info')"
+                                      th:text="${order.status != null ? order.status : 'PENDIENTE'}"></span>
+                            </td>
+                            <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy')}"></td>
+                            <td>
+                                <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm btn-primary">Ver Detalles</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${recentOrders == null or recentOrders.isEmpty()}">
+                            <td colspan="5" class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No tienes órdenes aún</p>
+                                <a th:href="@{/catalogo}" class="btn btn-primary" style="margin-top: 10px;">Ir al Catálogo</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <a th:href="@{/orders}" class="btn btn-primary">Ver Todas las Órdenes</a>
+            </div>
+        </div>
+
+        <!-- Reparaciones Recientes -->
+        <div class="dashboard-section" th:if="${recentRepairs != null and !recentRepairs.isEmpty()}">
+            <h2><i class="fas fa-tools"></i> Mis Reparaciones Recientes</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="repair : ${recentRepairs}">
+                            <td th:text="${repair.repairNumber}"></td>
+                            <td th:text="${#strings.abbreviate(repair.description, 50)}"></td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${repair.status != null and repair.status.name() == 'COMPLETED'} ? 'badge-success' : 
+                                                      (${repair.status != null and repair.status.name() == 'PENDING'} ? 'badge-warning' : 'badge-info')"
+                                      th:text="${repair.status != null ? repair.status : 'PENDIENTE'}"></span>
+                            </td>
+                            <td th:text="${repair.createdAt != null ? #temporals.format(repair.createdAt, 'dd/MM/yyyy') : 'N/A'}"></td>
+                            <td>
+                                <a th:href="@{/reparaciones/{id}(id=${repair.id})}" class="btn btn-sm btn-primary">Ver</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <a th:href="@{/reparaciones}" class="btn btn-primary">Ver Todas las Reparaciones</a>
+            </div>
+        </div>
+
+        <!-- Personalizaciones Recientes -->
+        <div class="dashboard-section" th:if="${recentCustomizations != null and !recentCustomizations.isEmpty()}">
+            <h2><i class="fas fa-pencil-alt"></i> Mis Personalizaciones Recientes</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Diseño</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="customization : ${recentCustomizations}">
+                            <td th:text="${customization.jewelryType ?: 'N/A'}"></td>
+                            <td th:text="${customization.design ?: 'N/A'}"></td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${customization.status != null and customization.status == 'completed'} ? 'badge-success' : 
+                                                      (${customization.status != null and customization.status == 'pending'} ? 'badge-warning' : 'badge-info')"
+                                      th:text="${customization.status ?: 'pending'}"></span>
+                            </td>
+                            <td th:text="${customization.createdAt != null ? #temporals.format(customization.createdAt, 'dd/MM/yyyy') : 'N/A'}"></td>
+                            <td>
+                                <a th:href="@{/personalizacion/{id}(id=${customization.id})}" class="btn btn-sm btn-primary">Ver</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <a th:href="@{/personalizacion}" class="btn btn-primary">Ver Todas las Personalizaciones</a>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        const botonMenu = document.querySelector('.boton-menu');
+        const menuLateral = document.getElementById('menuLateral');
+        const contenidoPrincipal = document.querySelector('.dashboard-container');
+
+        if (botonMenu && menuLateral) {
+            botonMenu.addEventListener('click', () => {
+                menuLateral.classList.toggle('activo');
+                botonMenu.classList.toggle('activo');
+                if (contenidoPrincipal) {
+                    contenidoPrincipal.classList.toggle('menu-activo');
+                }
+            });
+        }
+
+        // Asegurar que el botón siempre esté visible
+        if (botonMenu) {
+            botonMenu.style.display = 'block';
+            botonMenu.style.visibility = 'visible';
+            botonMenu.style.opacity = '1';
+        }
+    </script>
+</body>
+</html>
+
