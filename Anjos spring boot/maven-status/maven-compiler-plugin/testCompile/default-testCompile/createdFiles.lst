@@ -1,0 +1,7 @@
+com\empresa\miproyecto\service\OrderServiceTest.class
+com\empresa\miproyecto\repository\ProductRepositoryTest.class
+com\empresa\miproyecto\service\CartServiceTest.class
+com\empresa\miproyecto\service\UserServiceTest.class
+com\empresa\miproyecto\service\ProductServiceTest.class
+com\empresa\miproyecto\controller\HomeControllerTest.class
+com\empresa\miproyecto\MiProyectoApplicationTests.class
